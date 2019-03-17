@@ -1,4 +1,4 @@
-# MNIST Classification CNN
+# MNIST digit generation with GAN
 
 Generate MNIST digits with Generative Adverserial Network (GAN).
 
