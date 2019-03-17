@@ -30,7 +30,7 @@ if __name__ == "__main__":
         help="Discriminator learning rate",
     )
     parser.add_argument(
-        "--batch-size", default=100, type=int, help="Batch Size when training"
+        "--batch-size", default=256, type=int, help="Batch Size when training"
     )
     parser.add_argument(
         "--noise-dim",
@@ -51,11 +51,10 @@ if __name__ == "__main__":
     dataset = tfds.load("mnist", as_supervised=True, split=tfds.Split.TRAIN)
     dataset = (
         dataset.map(convert_types)
-        .shuffle(60)
+        .shuffle(60000)
         .batch(args.batch_size)
         .prefetch(AUTOTUNE)
     )
-    dataset = dataset.take(1000)
 
     generator = models.Sequential(
         [
