@@ -3,7 +3,7 @@
 Generation of MNIST digits using a Generative Adverserial Network (GAN).
 
 <p align="center">
-    <img src="mnist-gan.gif" height="200px">
+    <img src="mnist-gan.gif" height="440px">
 </p>
 
 ## Install dependencies
