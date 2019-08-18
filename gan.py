@@ -46,7 +46,7 @@ if __name__ == "__main__":
         help="Size of the noise dimension",
     )
     parser.add_argument(
-        "--epochs", default=20, type=int, help="Number of training epochs"
+        "--epochs", default=50, type=int, help="Number of training epochs"
     )
     args = parser.parse_args()
 
@@ -59,7 +59,7 @@ if __name__ == "__main__":
     dataset = (
         dataset.map(convert_types)
         .cache()
-        .shuffle(60000)
+        .shuffle(1000)
         .batch(args.batch_size)
         .prefetch(AUTOTUNE)
     )
