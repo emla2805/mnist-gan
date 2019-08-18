@@ -180,7 +180,7 @@ if __name__ == "__main__":
     for epoch in range(args.epochs):
         start = time.time()
 
-        for image_batch in dataset.take(20):
+        for image_batch in dataset:
             train_step(image_batch)
 
         with summary_writer.as_default():
