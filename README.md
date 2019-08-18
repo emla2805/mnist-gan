@@ -1,43 +1,38 @@
 # MNIST digit generation with GAN
 
-Generate MNIST digits with Generative Adverserial Network (GAN).
+Generation of MNIST digits using a Generative Adverserial Network (GAN).
 
+<p align="center">
+    <img src="mnist-gan.gif" height="200px">
+</p>
 
 ## Install dependencies
 
-Development for this example will be isolated in a Python virtual environment.
-This allows us to experiment with different versions of dependencies.
+Create a Python 3 virtual environment and activate it:
 
-There are many ways to install `virtualenv`, see the
-[TensorFlow install guides](https://www.tensorflow.org/install) for different
-platforms, but here are a couple:
-
-* For Linux:
-
-        sudo apt-get install python-pip python-virtualenv python-dev build-essential
-
-* For Mac:
-
-        pip install --upgrade virtualenv
-
-Create a Python 3.7 virtual environment for this example and activate the
-`virtualenv`:
-
-    virtualenv -p python3.7 venv
-    source ./venv/bin/activate
+```bash
+virtualenv -p python3 venv
+source ./venv/bin/activate
+```
 
 Next, install the required dependencies:
 
-    pip install -r requirements.txt
+```bash
+pip install -r requirements.txt
+```
 
 ## Train model
 
 Start the model training by running:
 
-    python gan.py
+```bash
+python gan.py
+```
 
 To track metrics, start `Tensorboard`
 
-    tensorboard --logdir <LOGDIR>
+```bash
+tensorboard --logdir path/to/log/dir
+```
 
-and navigate to [localhost:6006](localhost:6006).
+and then go to [localhost:6006](localhost:6006).
