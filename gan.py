@@ -1,20 +1,27 @@
-"""GAN MNIST"""
-import os
 import time
 from argparse import ArgumentParser
 
 import tensorflow as tf
-from tensorflow.keras import layers, models
 import tensorflow_datasets as tfds
+from tensorflow.python.keras.layers import (
+    Conv2DTranspose,
+    LeakyReLU,
+    BatchNormalization,
+    Dense,
+    Conv2D,
+    Reshape,
+    Dropout,
+    Flatten,
+)
 
 AUTOTUNE = tf.data.experimental.AUTOTUNE
-
+NUM_EXAMPLES_TO_GENERATE = 16
 
 if __name__ == "__main__":
     parser = ArgumentParser()
     parser.add_argument(
-        "--model-dir",
-        default=".",
+        "--log-dir",
+        default="logs",
         help="Directory where model summaries and checkpoints are stored",
     )
     parser.add_argument(
@@ -39,7 +46,7 @@ if __name__ == "__main__":
         help="Size of the noise dimension",
     )
     parser.add_argument(
-        "--epochs", default=20, type=int, help="Batch Size when training"
+        "--epochs", default=20, type=int, help="Number of training epochs"
     )
     args = parser.parse_args()
 
@@ -51,28 +58,29 @@ if __name__ == "__main__":
     dataset = tfds.load("mnist", as_supervised=True, split=tfds.Split.TRAIN)
     dataset = (
         dataset.map(convert_types)
+        .cache()
         .shuffle(60000)
         .batch(args.batch_size)
         .prefetch(AUTOTUNE)
     )
 
-    generator = models.Sequential(
+    generator = tf.keras.models.Sequential(
         [
-            layers.Dense(7 * 7 * 256, use_bias=False, input_shape=(100,)),
-            layers.BatchNormalization(),
-            layers.LeakyReLU(),
-            layers.Reshape((7, 7, 256)),
-            layers.Conv2DTranspose(
+            Dense(7 * 7 * 256, use_bias=False, input_shape=(100,)),
+            BatchNormalization(),
+            LeakyReLU(),
+            Reshape((7, 7, 256)),
+            Conv2DTranspose(
                 128, (5, 5), strides=(1, 1), padding="same", use_bias=False
             ),
-            layers.BatchNormalization(),
-            layers.LeakyReLU(),
-            layers.Conv2DTranspose(
+            BatchNormalization(),
+            LeakyReLU(),
+            Conv2DTranspose(
                 64, (5, 5), strides=(2, 2), padding="same", use_bias=False
             ),
-            layers.BatchNormalization(),
-            layers.LeakyReLU(),
-            layers.Conv2DTranspose(
+            BatchNormalization(),
+            LeakyReLU(),
+            Conv2DTranspose(
                 1,
                 (5, 5),
                 strides=(2, 2),
@@ -83,22 +91,22 @@ if __name__ == "__main__":
         ]
     )
 
-    discriminator = models.Sequential(
+    discriminator = tf.keras.models.Sequential(
         [
-            layers.Conv2D(
+            Conv2D(
                 64,
                 (5, 5),
                 strides=(2, 2),
                 padding="same",
                 input_shape=[28, 28, 1],
             ),
-            layers.LeakyReLU(),
-            layers.Dropout(0.3),
-            layers.Conv2D(128, (5, 5), strides=(2, 2), padding="same"),
-            layers.LeakyReLU(),
-            layers.Dropout(0.3),
-            layers.Flatten(),
-            layers.Dense(1),
+            LeakyReLU(),
+            Dropout(0.3),
+            Conv2D(128, (5, 5), strides=(2, 2), padding="same"),
+            LeakyReLU(),
+            Dropout(0.3),
+            Flatten(),
+            Dense(1),
         ]
     )
 
@@ -117,26 +125,27 @@ if __name__ == "__main__":
     generator_optimizer = tf.keras.optimizers.Adam(args.generator_lr)
     discriminator_optimizer = tf.keras.optimizers.Adam(args.discriminator_lr)
 
-    checkpoint_prefix = os.path.join(args.model_dir, "ckpt")
-    checkpoint = tf.train.Checkpoint(
+    ckpt = tf.train.Checkpoint(
         generator_optimizer=generator_optimizer,
         discriminator_optimizer=discriminator_optimizer,
         generator=generator,
         discriminator=discriminator,
     )
+    manager = tf.train.CheckpointManager(ckpt, args.log_dir, max_to_keep=1)
+
+    if manager.latest_checkpoint:
+        ckpt.restore(manager.latest_checkpoint)
+        print("Restored from {}".format(manager.latest_checkpoint))
+    else:
+        print("Initializing from scratch.")
 
     gen_loss = tf.keras.metrics.Mean(name="gen_loss")
     disc_loss = tf.keras.metrics.Mean(name="disc_loss")
 
-    log_dir = os.path.join(args.model_dir, "logs")
-    summary_writer = tf.summary.create_file_writer(
-        os.path.join(log_dir, "train")
-    )
-
-    num_examples_to_generate = 16
+    summary_writer = tf.summary.create_file_writer(args.log_dir)
 
     # Seed for generating images
-    seed = tf.random.normal([num_examples_to_generate, args.noise_dim])
+    seed = tf.random.normal([NUM_EXAMPLES_TO_GENERATE, args.noise_dim])
 
     @tf.function
     def train_step(images):
@@ -171,24 +180,31 @@ if __name__ == "__main__":
     for epoch in range(args.epochs):
         start = time.time()
 
-        for image_batch in dataset:
+        for image_batch in dataset.take(20):
             train_step(image_batch)
 
         with summary_writer.as_default():
             tf.summary.scalar("loss/generator", gen_loss.result(), step=epoch)
-            tf.summary.scalar("loss/discriminator", disc_loss.result(), step=epoch)
+            tf.summary.scalar(
+                "loss/discriminator", disc_loss.result(), step=epoch
+            )
 
-        # Save the model every 15 epochs
-        if (epoch + 1) % 15 == 0:
-            checkpoint.save(file_prefix=checkpoint_prefix)
+        if (epoch + 1) % 5 == 0:
+            save_path = manager.save()
+            print("Saved checkpoint for epoch {}: {}".format(epoch, save_path))
 
         # Save images
         gen_images = generator(seed, training=False)
-        images = tf.reshape(gen_images * 127.5 + 127.5, (-1, 28, 28, 1))
+        images = tf.reshape(gen_images * 0.5 + 0.5, (-1, 28, 28, 1))
         with summary_writer.as_default():
-            tf.summary.image("Generated digits", images, max_outputs=num_examples_to_generate, step=epoch)
+            tf.summary.image(
+                "Generated digits",
+                images,
+                max_outputs=NUM_EXAMPLES_TO_GENERATE,
+                step=epoch,
+            )
 
-        template = "Time for epoch {} is {} sec, Gen Loss: {}, Disc Loss: {}"
+        template = "Epoch {} took {:.0f} sec, Gen Loss: {}, Disc Loss: {}"
         print(
             template.format(
                 epoch + 1,
