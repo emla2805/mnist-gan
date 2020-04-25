@@ -1,6 +1,7 @@
-# MNIST digit generation with GAN
+# GAN for MNIST digit generation
 
-Generation of MNIST digits using a Generative Adverserial Network (GAN).
+Tensorflow implementation of a Generative Adverserial Network (GAN) to
+generate MNIST digits, using the new way to override `Model.train_step` in keras.
 
 <p align="center">
     <img src="mnist-gan.gif" height="440px">
@@ -26,7 +27,7 @@ pip install -r requirements.txt
 Start the model training by running:
 
 ```bash
-python gan.py
+python train.py
 ```
 
 To track metrics, start `Tensorboard`
