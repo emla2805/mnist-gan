@@ -1,2 +1,2 @@
-tensorflow==2.0.0-beta1
-tensorflow-datasets==1.1.0
+tensorflow==2.2.0rc3
+tensorflow-datasets==3.0.0
