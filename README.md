@@ -7,17 +7,11 @@ generate MNIST digits, using the new way to override `Model.train_step` in keras
     <img src="images/mnist-gan.gif" height="440px">
 </p>
 
-## Results
+## Training vs Generated Images
 
 <div align="center">
-    <div>
-        <h2>Training Images</h2> 
-        <img src="images/training_images.png" width="400px"> 
-    </div>
-    <div>
-        <h2>Generated Images</h2> 
-        <img src="images/generated_images.png" width="400px">
-    </div>
+    <img src="images/training_images.png" width="400px" title="Training">
+    <img src="images/generated_images.png" width="400px" title="Generated">
 </div>
 
 ## Install dependencies
