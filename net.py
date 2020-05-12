@@ -17,7 +17,7 @@ class GAN(tf.keras.Model):
     def train_step(self, real_images):
         batch_size = tf.shape(real_images)[0]
         random_latent_vectors = tf.random.normal(
-            shape=(batch_size, self.latent_dim)
+            shape=(batch_size, 1, 1, self.latent_dim)
         )
 
         generated_images = self.generator(random_latent_vectors)
