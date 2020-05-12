@@ -1,11 +1,24 @@
-# GAN for MNIST digit generation
+# DCGAN for MNIST digit generation
 
 Tensorflow implementation of a Generative Adverserial Network (GAN) to
 generate MNIST digits, using the new way to override `Model.train_step` in keras.
 
 <p align="center">
-    <img src="mnist-gan.gif" height="440px">
+    <img src="images/mnist-gan.gif" height="440px">
 </p>
+
+## Results
+
+<div align="center">
+    <div>
+        <h2>Training Images</h2> 
+        <img src="images/training_images.png" width="400px"> 
+    </div>
+    <div>
+        <h2>Generated Images</h2> 
+        <img src="images/generated_images.png" width="400px">
+    </div>
+</div>
 
 ## Install dependencies
 
